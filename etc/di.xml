@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\TwoFactorAuth\Api\TfaInterface">
+        <plugin name="skip_second_provider_activation" type="MageSuite\TfaDoNotForceAllProviders\Plugin\Magento\TwoFactorAuth\Api\TfaInterface\SkipSecondProviderActivation"/>
+    </type>
+    <type name="Magento\TwoFactorAuth\Block\ChangeProvider">
+        <plugin name="show_all_providers" type="MageSuite\TfaDoNotForceAllProviders\Plugin\Magento\TwoFactorAuth\Block\ChangeProvider\ShowAllProviders"/>
+    </type>
+</config>
