@@ -1,26 +1,23 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MageSuite\TfaDoNotForceAllProviders\Plugin\Magento\TwoFactorAuth\Api\TfaInterface;
 
 class SkipSecondProviderActivation
 {
-    protected \Magento\Framework\App\Request\Http $request;
-
     protected array $forbiddenActionList = [
-        'tfa_tfa_requestconfig'
+        'tfa_tfa_requestconfig',
+        'tfa_tfa_providerselection'
     ];
 
-    public function __construct(\Magento\Framework\App\Request\Http $request)
-    {
-        $this->request = $request;
+    public function __construct(
+        protected \Magento\Framework\App\Request\Http $request
+    ) {
     }
 
-    public function aroundGetProvidersToActivate(
-        \Magento\TwoFactorAuth\Api\TfaInterface $subject,
-        callable $proceed,
-        int $userId
-    ): array {
+    public function aroundGetProvidersToActivate(\Magento\TwoFactorAuth\Api\TfaInterface $subject, callable $proceed, int $userId): array
+    {
         $providersToActive = $proceed($userId);
 
         if (empty($providersToActive) || $this->isActionForbidden()) {
