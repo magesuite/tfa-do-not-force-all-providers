@@ -5,6 +5,6 @@
         <plugin name="skip_second_provider_activation" type="MageSuite\TfaDoNotForceAllProviders\Plugin\Magento\TwoFactorAuth\Api\TfaInterface\SkipSecondProviderActivation"/>
     </type>
     <type name="Magento\TwoFactorAuth\Block\ChangeProvider">
-        <plugin name="show_all_providers" type="MageSuite\TfaDoNotForceAllProviders\Plugin\Magento\TwoFactorAuth\Block\ChangeProvider\ShowAllProviders"/>
+        <plugin name="show_all_providers" type="MageSuite\TfaDoNotForceAllProviders\Plugin\Magento\TwoFactorAuth\Block\ChangeProvider\ShowAllProviders" sortOrder="10"/>
     </type>
 </config>

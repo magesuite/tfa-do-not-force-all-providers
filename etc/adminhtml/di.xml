@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\TwoFactorAuth\Api\UserConfigManagerInterface">
+        <plugin name="replace_inactive_default_provider" type="MageSuite\TfaDoNotForceAllProviders\Plugin\Magento\TwoFactorAuth\Api\UserConfigManagerInterface\ReplaceInactiveDefaultProvider" sortOrder="10"/>
+    </type>
+</config>

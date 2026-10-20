@@ -1,63 +1,68 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MageSuite\TfaDoNotForceAllProviders\Plugin\Magento\TwoFactorAuth\Block\ChangeProvider;
 
 class ShowAllProviders
 {
-    protected \Magento\Framework\Serialize\SerializerInterface $serializer;
-
-    protected \Magento\TwoFactorAuth\Api\TfaInterface $tfa;
-
-    protected \Magento\Authorization\Model\UserContextInterface $userContext;
-
     public function __construct(
-        \Magento\Framework\Serialize\SerializerInterface $serializer,
-        \Magento\TwoFactorAuth\Api\TfaInterface $tfa,
-        \Magento\Authorization\Model\UserContextInterface $userContext
+        protected \Magento\Framework\Serialize\SerializerInterface $serializer,
+        protected \Magento\TwoFactorAuth\Api\TfaInterface $tfa,
+        protected \Magento\Authorization\Model\UserContextInterface $userContext
     ) {
-        $this->serializer = $serializer;
-        $this->tfa = $tfa;
-        $this->userContext = $userContext;
     }
 
-    public function afterGetJsLayout(
-        \Magento\TwoFactorAuth\Block\ChangeProvider $subject,
-        string $result
-    ): string {
-        $result = $this->serializer->unserialize($result);
-        $providers = [];
+    public function afterGetJsLayout(\Magento\TwoFactorAuth\Block\ChangeProvider $subject, string $result): string
+    {
+        $jsLayout = $this->serializer->unserialize($result);
+        $listedProviders = $this->getListedProviders($jsLayout);
+        $switchableProviders = $this->getSwitchableProviders($subject);
 
-        foreach ($this->getProvidersList($subject) as $provider) {
-            $providers[] = [
-                'code' => $provider->getCode(),
-                'name' => $provider->getName(),
-                'auth' => $provider->isActive($this->userContext->getUserId())
-                    ? $subject->getUrl($provider->getAuthAction())
-                    : $subject->getUrl('tfa/tfa/requestconfig'),
-                'icon' => $subject->getViewFileUrl($provider->getIcon()),
-            ];
+        if (empty(array_diff_key($switchableProviders, $listedProviders))) {
+            return $result;
         }
 
-        $result['components']['tfa-change-provider']['switchIcon'] = $subject->getViewFileUrl('Magento_TwoFactorAuth::images/change_provider.png');
-        $result['components']['tfa-change-provider']['providers'] = $providers;
+        $providers = [];
 
-        return $this->serializer->serialize($result);
+        foreach ($switchableProviders as $code => $provider) {
+            $providers[] = $listedProviders[$code] ?? $this->getConfigurationRequestEntry($subject, $provider);
+        }
+
+        $jsLayout['components']['tfa-change-provider']['providers'] = $providers;
+
+        return $this->serializer->serialize($jsLayout);
     }
 
-    protected function getProvidersList(\Magento\TwoFactorAuth\Block\ChangeProvider $block): array
+    protected function getListedProviders(array $jsLayout): array
     {
-        $res = [];
-        $providers = $this->tfa->getUserProviders((int)$this->userContext->getUserId());
+        $providers = $jsLayout['components']['tfa-change-provider']['providers'] ?? [];
 
-        foreach ($providers as $provider) {
+        return array_column($providers, null, 'code');
+    }
+
+    protected function getSwitchableProviders(\Magento\TwoFactorAuth\Block\ChangeProvider $block): array
+    {
+        $providers = [];
+
+        foreach ($this->tfa->getUserProviders((int)$this->userContext->getUserId()) as $provider) {
             if ($provider->getCode() === $block->getData('provider')) {
                 continue;
             }
 
-            $res[] = $provider;
+            $providers[$provider->getCode()] = $provider;
         }
 
-        return $res;
+        return $providers;
+    }
+
+    protected function getConfigurationRequestEntry(\Magento\TwoFactorAuth\Block\ChangeProvider $block, \Magento\TwoFactorAuth\Api\ProviderInterface $provider): array
+    {
+        return [
+            'code' => $provider->getCode(),
+            'name' => $provider->getName(),
+            'auth' => $block->getUrl('tfa/tfa/requestconfig'),
+            'icon' => $block->getViewFileUrl($provider->getIcon()),
+        ];
     }
 }
